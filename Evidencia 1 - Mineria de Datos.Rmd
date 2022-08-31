@@ -1,0 +1,508 @@
+---
+title: "Evidencia 1 - Minería de Datos"
+author: "Andrés Rodríguez"
+date: "11/2/2021"
+output: 
+  html_document:
+    toc: yes
+    theme: flatly
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Situación Problema 
+
+Para esta evidencia se realizarán diferentes análisis para determinar clientes potenciales para las tarjetas de crédito. Los análisis que estaremos utilizando son: Conglomerados y Regresión, con los cuáles podremos identificar información clave.
+
+## Descripción
+
+Se busca hacer un análisis descriptivo y predictivo de los clientes potenciales para que un banco tome las decisiones correctas al momento de dirigirise al mercado, y como implementar las estrategias y ofertas correctas para cada tarjeta de crédito dependiendo del nivel socioeconómico, edad, estado civil, etc. Esto con la finalidad de poder otorgarle a las personas la oportunidad de tener el mejor plan crediticio sin arriesgar sus finanzas y aprovechando al máximo los beneficios que se ofrecen con estos planes.
+
+## Identificación de Clusters
+
+### Objetivo del Negocio
+
+Como sabemos, la manera en la que las personas utilizan sus tarjetas de crédito y hacen compras se diferencia también por sus características personales y los comportamientos que presentan en sus vidas. Es por esto que el objetivo del negocio se vuelve claro, encontrar los tipos de usuarios que preferirían alguna tarjeta de crédito en específico para poder hacer estrategias de mercadotecnia y ventas especializadas para poder conseguir una tasa de conversión alta, o inclusive, utilizar la información relevante que se encontró en los análisis para lograr una mayor retención al cliente actual y tener mejor lealtad y una cantidad mayor de interacciones con ellos. Estos son los tipos de objetivos que se pueden conseguir mediante el análisis correcto de la base de datos.
+
+### Preguntas
+
+¿Por qué es adecuado utilizar un método de identificación de clústers para ese objetivo y para los datos proporcionados?
+
+-   Es adecuado utilizar un método de clusters para poder resumir información, segmentar mercados y formar grupos que tengan información en común u observaciones parecidas. En este caso la base de datos contiene información muy dispersa, ya que hay varias categorías y muchas observaciones, por lo cuál se necesita utilizar el método de conglomerados para cumplir con el objetivo. Es por esto que los métodos seleccionados para esta evidencia son los más adecuados para poder encontrar los mejores insights posibles.
+
+Presenta un análisis descriptivo relevante al método y presenta los clústers identificados, mediante tablas, gráficas y métricas relevantes, de manera concisa.
+
+-   Para este paso cargaremos la base de datos y haremos diferentes visualizaciones.
+
+```{r}
+library(readxl)
+datos <- read_excel("Mineria.xlsx")
+```
+
+#### Clasificación de Variables 
+
+Perfil de Cliente
+
+-   Cliente ID
+
+-   Antigüedad del cliente
+
+-   Nivel Socio-Económico
+
+-   Edad
+
+-   Estátus Marital
+
+Patrones de uso de la tarjeta de crédito
+
+-   Compras únicas
+
+-   Compras al año
+
+-   Compras a plazo
+
+-   Disposición de efectivo
+
+-   Procentaje de compras
+
+-   Frecuencia de compras únicas
+
+-   Frecuencia de disposición de efectivo
+
+-   Compra promedio por transacción
+
+-   Promedio de disposición de efectivo por transacción
+
+-   Compras por transacciones
+
+Indicadores Financieros de gestionamiento de la cuenta
+
+-   Saldo Mensual
+
+-   Saldo Anual
+
+-   Limite de crédito
+
+-   Pagos
+
+-   Pagos mínimos
+
+-   Porcentaje de meses con pago total
+
+Una vez clasificadas las variables podemos empezar a priorizar las que más necesitemos para poder conseguir los mejores insights que los datos nos puedan dar, y analizaremos la correlación que existe entre las variables con matrices de correlación.
+
+```{r}
+library(corrplot)
+Datos_Cuan <- datos[,c(2:18,20)]
+correlation <-cor (Datos_Cuan)
+head(round(correlation,2))
+corrplot(correlation, type = "lower")
+```
+
+De acuerdo a la matriz podemos empezar a checar la correlación entre las variables de interés para así poder observar las variables que puedan segmentar a nuestro mercado para darnos una mejor idea.
+
+```{r}
+library(ggpubr)
+ggscatter(datos, x = "19. NSE", y = "4. COMPRAS AL AÑO.",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Edad", ylab = "Compras al año")
+```
+
+```{r}
+ggscatter(datos, x = "20. EDAD", y = "4. COMPRAS AL AÑO.",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Edad", ylab = "Compras al año")
+```
+
+```{r}
+ggscatter(datos, x = "21. Estatus Marital", y = "9. FRECUENCIA DE COMPRAS UNICAS",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Estatus Marital", ylab = "Frecuencia de compras unicas")
+```
+
+```{r}
+ggscatter(datos, x = "5. COMPRAS UNICAS.", y = "4. COMPRAS AL AÑO.",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Compras Únicas", ylab = "Compras al año")
+```
+
+```{r}
+ggscatter(datos, x = "14.LÍMITE DE CRÉDITO", y = "4. COMPRAS AL AÑO.",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Limite de Credito", ylab = "Compras al año")
+```
+
+```{r}
+ggscatter(datos, x = "19. NSE", y = "15. PAGOS PARA DISMINUIR SALDOS",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Nivel Socieconomico", ylab = "Pagos para disminuir saldos")
+```
+
+```{r}
+ggscatter(datos, x = "20. EDAD", y = "16. TOTAL DE PAGOS MÍNIMOS.",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Edad", ylab = "Total de pagos minimos")
+```
+
+```{r}
+ggscatter(datos, x = "20. EDAD", y = "10. FRECUENCIA DE DISPOSICIÓN D",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Edad", ylab = "Frecuencia de Disposicion de Efectivo")
+```
+
+Las siguientes variables son aquellas que se seleccionaron para poder hacer el análisis de la mejor manera posible para que coincidan los resultados con el objetivo del negocio, estas variables son:
+
+1.  Compras al año
+2.  Disposición de Efectivo
+3.  Porcentaje de Compras
+4.  Compras por Transacciones
+
+Haremos una nueva base de datos que solo contendrá las observaciones de estas variables.
+
+```{r}
+Datos_1<-datos[,c("4. COMPRAS AL AÑO.","7. DISPOSICIÓN DE EFECTIVO.","8.PORCENTAJE DE MESES CON AL ME","13. COMPRAS POR TRANSACCIONES.")]
+```
+
+Por rutina, haremos un chequeo de valores faltantes, para que en el caso de que si falte hagamos la limpieza de la base de datos.
+
+```{r}
+colSums(is.na(Datos_1))
+```
+
+Como podemos observar por los resultados, no hay valores nulos presentes en la base de datos, así que podemos continuar con los otrs pasos.
+
+Ahora haremos una estandarización de los datos para no sesgar los resultados con valores que puedan afectar el proceso.
+
+```{r}
+Datos_1_E <- scale(Datos_1)
+```
+
+Ahora se hará un análisis de conglomerados utilizando el método de k-medias con la función de kmeans y por el momento solo analizaremos 5 clústers.
+
+```{r}
+set.seed(61) 
+Kmeans <- kmeans(Datos_1_E, centers=5)
+```
+
+Después un gráfico para obtener la cantidad de cluetsers recomendados para el análisis y se obtendrá más preciso.
+
+```{r}
+library(factoextra)
+fviz_nbclust(Datos_1_E, kmeans, method = "wss")
+```
+
+Como podemos observar, el gráfico nos indica que el mejor número de clusters son 4.
+
+## Visualización de los Clusters con método de agrupación jerárquica
+
+### Medida de distancia
+
+Empezaremos midiendo la distancia, para esto utilizaremos la técnica Euclidiana para ver los resultados dentro de una matriz.
+
+```{r}
+Eclid <- dist(Datos_1_E, method = "euclidean")
+```
+
+Luego hacemos las estimaciones para enocontrar los mejores valores y se usará el método Ward.
+
+```{r}
+Eclid_1 <- hcut(Eclid, hc_method = "ward.D")
+```
+
+Después de esta paso, haremos ahora un dendograma para obtener una mejor visualización final y poder observar las posiciones correctas.
+
+```{r}
+dendograma <- hclust(Eclid, method = "ward.D" )
+plot(dendograma)
+```
+
+Ahora observaremos solo los 4 clústers de selección.
+
+```{r}
+HC <- hcut(Eclid, k=4, hc_method = "ward.D")
+```
+
+### Visualización Final
+
+Primero teneoms que crear una base de datos con los valores de los clústers estimados.
+
+```{r}
+datos$ClusterHC<-HC$cluster
+```
+
+Se utilizará un gráfico de dispersión para poder observar las diferencias en colores y observaciones de cada clúster.
+
+Primero graficaremos las variables de:
+
+-   Disposicion de efectivo vs Porcentaje de Compras
+
+```{r}
+fviz_cluster(HC,
+             data=datos[,c("7. DISPOSICIÓN DE EFECTIVO.","8.PORCENTAJE DE MESES CON AL ME")],
+             stand = FALSE,
+             geom="point",
+             mean.point.size=5)+
+  scale_y_continuous(breaks = seq(0,1.2,0.1))+
+  scale_x_continuous(breaks = seq(70,100,5))
+```
+
+-   Disposicion de Efectivo vs Compras por Transacciones
+
+```{r}
+fviz_cluster(HC,
+             data=datos[,c("7. DISPOSICIÓN DE EFECTIVO.","13. COMPRAS POR TRANSACCIONES.")],
+             stand = FALSE,
+             geom="point",
+             mean.point.size=5)+
+  scale_y_continuous(breaks = seq(0,1.2,0.1))+
+  scale_x_continuous(breaks = seq(70,100,5))
+```
+
+-   Compras al año vs Compras por Transacciones
+
+```{r}
+fviz_cluster(HC,
+             data=datos[,c("4. COMPRAS AL AÑO.","13. COMPRAS POR TRANSACCIONES.")],
+             stand = FALSE,
+             geom="point",
+             mean.point.size=5)+
+  scale_y_continuous(breaks = seq(0,1.2,0.1))+
+  scale_x_continuous(breaks = seq(70,100,5))
+```
+
+Ahora realizaremos el análisis también en tablas
+
+```{r}
+datos_2 <- datos
+datos_2_1<-datos[,c("4. COMPRAS AL AÑO.","7. DISPOSICIÓN DE EFECTIVO.","8.PORCENTAJE DE MESES CON AL ME","13. COMPRAS POR TRANSACCIONES.")]
+datos_2_1_1 <- scale(datos_2_1)
+d_2 <- dist(datos_2_1_1, method = "euclidean")
+HC <- hcut(Eclid, k=4, hc_method = "ward.D")
+datos_2$ClusterHC<-HC$cluster
+names(datos_2)[names(datos_2) == '4. COMPRAS AL AÑO.'] <- 'COMPRAS_AL_AÑO'
+names(datos_2)[names(datos_2) == '7. DISPOSICIÓN DE EFECTIVO.'] <- 'DISPOSICIÓN_DE_EFECTIVO'
+names(datos_2)[names(datos_2) == '8.PORCENTAJE DE MESES CON AL ME'] <- 'PORCENTAJE_DE_COMPRAS'
+names(datos_2)[names(datos_2) == '13. COMPRAS POR TRANSACCIONES.'] <- 'COMPRAS_TRANSACCIONES'
+```
+
+```{r}
+library("dplyr")
+#Tabla con datos de las n=1000 observaciones
+Tabla1000 <- datos_2 %>%
+  summarize("n"=n(), 
+            "Total de compras al año" = round(mean(COMPRAS_AL_AÑO),1), 
+            "Disposicion de Efectivo" = round(mean(DISPOSICIÓN_DE_EFECTIVO),1),
+            "Porcentaje de Compras" =round(mean(PORCENTAJE_DE_COMPRAS),1),
+            "Compras por transacciones" =round(mean(COMPRAS_TRANSACCIONES),1))
+
+#Tabla por cada cluster
+Tablaclusters <- datos_2 %>%
+  group_by(ClusterHC) %>% 
+  summarize("n"=n(), 
+            "Total de compras al año" = round(mean(COMPRAS_AL_AÑO),1), 
+            "Disposicion de Efectivo" = round(mean(DISPOSICIÓN_DE_EFECTIVO),1),
+            "Porcentaje de Compras" =round(mean(PORCENTAJE_DE_COMPRAS),1),
+            "Compras por transacciones" =round(mean(COMPRAS_TRANSACCIONES),1))
+
+#Tabla agregada
+Tabla <-bind_rows(Tablaclusters, Tabla1000)
+Tabla
+```
+
+Con esto ya podemos empezar a hacer una intepretación de resultados.
+
+### Interpretación de los clusters. 
+
+Como podemos observar en base a los resultados tenemos 4 clústers que son bastante diferentes, así que es importante analizar cada uno para poder observar los mejores insights que nos tenga cada uno:
+
+1.  El primer clúster cuenta con 3,947 observaciones, las cuáles convierten a este clúster el más grande, sin embargo, podemos observar que las variables de total de compras al año, porcentaje de compras y compras por transacciones tienen resultados muy bajos en perspectiva con el tamaño de la muestra, pero tienen una disposición de efectivo alta, ya que son el 2ndo clúster con valor más alto en ese resultado. Con esto podemos concluir que este clúster está compuesto por un grupo de personas que prefieren utilizar efectivo ya que tienen una mayor disposición del mismo, pero evita utilizar las tarjetas de crédito.
+2.  El segundo clúster tiene 698 observaciones, convirtiendo a este clúster en el que menos observaciones se tiene. Este clúster solamente tiene el procentaje de compras bajo, con un 30%, pero este grupo de personas hacen una cantidad considerable de compras al año, cuentan con mucha disposición de efectivo y 10 compras por transacción, lo cuál no es muy bajo pero podría mejorar. En este caso se podría decir que la gente de este grupo cuenta con una buena situación financiera y le gusta hacer muchas compras, pero puede estar prefiriendo el efectivo más que las tarjetas.
+3.  El tercer clúster cuenta con 2,034 observaciones, las cuáles tienen una cantidad de compras al año bajas en comparación con el grupo anterior, pero en este grupo no tienen tanta disposición de efectivo pero un procentaje de compras bastante alta, del 90% y una buena cantidad de compras por transacción. Se puede decir que este grupo utiliza mucho las tarjetas, ya que no tienen una disposición de efectivo tan alta, pero son de los grupos con mayor porcentaje de compras que hay.
+4.  Este último clúster cuenta con 1,294 observaciones, algo interesante de este grupo es que es el que más compras al año tiene y es el 3er grupo con menos observaciones de los conglomerados. También cuentan con una disposición de efectivo bastante baja y un porcentaje de compras bastante alto, y eso se combina con una cantidad muy alta de compras por transacción, quizá inclusive entrando al consumismo. Este grupo es el que hace más uso de las tarjetas, ya que no cuentan con mucha disposición de efectivo pero si con la mayor cantidad de compras al año, lo cuál indica el uso de tarjetas de crédito más frecuente.
+
+**¿Qué acciones recomendarías para cada uno de los clústers para incrementar el buen uso de la tarjeta de crédito?**
+
+-   Clúster 1: Para este grupo que no utiliza mucho las tarjetas de crédito sería enseñarles las ventajas que una tarjeta de crédito le puede otorgar a las personas, también aplicaría un programa de lealtad para asegurar de cierta manera que empiecen a utilizarla más para empezar a ganar más beneficios.
+
+-   Clúster 2: A este grupo le gusta mucho usar efectivo, la razón por la cual tienen tanta disposición del mismo, lo que se podría hacer con este grupo sería enseñarles los beneficios que existen de guardar tu dinero en un banco, como la tasa de interés y algunos beneficios en diferentes sucursales por compra, también sería una buena idea implementar el programa de lealtad para incentivar las compras con las tarjetas de crédito y así lograrán aumentar sus compras.
+
+-   Clúster 3: Con este grupo no es tan necesario implementar una dinámica para incentivar las compras con tarjetas de crédito, ya que con los insights encontrados no es una necesidad, sin embargo, se puede crear un sistema de recompensas por compras específicas que representen un gasto grande como viajes u hoteles, y esto aumentaría las compras por transacción al momento de hacerlas a lo largo del año.
+
+-   Clúster 4: Este clúster es el menos necesario de atender, ya que en base a los resultados podemos observar que son un grupo que hace mucho uso de las tarjetas de crédito y son leales a utilizar estas herramientas. Aún con este grupo se puede implementar alguna estrategia, una que se me ocurre es darles extensiones de crédito en temporadas de muchas compras o eventos específicos, lo cuál aumentaría la cantidad de compras y la cantidad de dinero que gastan.
+
+## Clasificación
+
+En este caso ya conocemos el objetivo del negocio, que es aumentar la cantidad de clientes que tienen una tarjeta de crédito, pero también para aumentar el uso de la misma con las personas que ya tienen tarjetas de crédito. Con estos análisis podremos verificar si la hipótesis de que las variables tiene correlaciones es correcta y esto nos ayudará a crear mejores estrategias.
+
+**¿Por qué es adecuado utilizar un método de clasificación para ese objetivo y con los datos proporcionados?**
+
+-   El método de clasficaciones nos va a ayudar a identificar de manera más concreta las relaciones que existen en las variables y el impacto que tienen entre sí. También nos ayudará mucho a identificar como los comportamientos y los patrones funcionan para poder utilizarlos para mejorar el uso de las tarjetas de crédito. Es así como las regresoines logísticas de clasificación discriminante nos pueden ayudar mucho para encontrar las observaciones más relevantes y poder crear las mejores estrategias.
+
+**Presenta un análisis descriptivo relevante al método y los resultados obtenidos de la clasificación, mediante tablas, gráficas y métricas relevantes, de manera concisa.**
+
+Para estos análisis utilizaremos únicamente las variables númericas que tengamos en la base de datos para poder continuar con este tipo de análisis.
+
+```{r}
+Datos_num <- datos[,c("2. SALDO MENUSAL.","3. SALDO ANUAL.","4. COMPRAS AL AÑO.","5. COMPRAS UNICAS.","6. COMPRAS A PLAZOS.","7. DISPOSICIÓN DE EFECTIVO.","8.PORCENTAJE DE MESES CON AL ME","9. FRECUENCIA DE COMPRAS UNICAS","10. FRECUENCIA DE DISPOSICIÓN D","12. PROMEDIO DE DISPOSICIÓN DE","13. COMPRAS POR TRANSACCIONES.","14.LÍMITE DE CRÉDITO","15. PAGOS PARA DISMINUIR SALDOS", "16. TOTAL DE PAGOS MÍNIMOS.","17. PORCENTAJE DE MESES CON PAG","18. MESES DE SER CLIENTE.","20. EDAD")]
+```
+
+```{r}
+Datos_E <- datos[,c("2. SALDO MENUSAL.","3. SALDO ANUAL.","4. COMPRAS AL AÑO.","5. COMPRAS UNICAS.","6. COMPRAS A PLAZOS.","7. DISPOSICIÓN DE EFECTIVO.","8.PORCENTAJE DE MESES CON AL ME","9. FRECUENCIA DE COMPRAS UNICAS","10. FRECUENCIA DE DISPOSICIÓN D","12. PROMEDIO DE DISPOSICIÓN DE","13. COMPRAS POR TRANSACCIONES.","14.LÍMITE DE CRÉDITO","15. PAGOS PARA DISMINUIR SALDOS", "16. TOTAL DE PAGOS MÍNIMOS.","17. PORCENTAJE DE MESES CON PAG","18. MESES DE SER CLIENTE.","20. EDAD", "21. Estatus Marital","19. NSE")]
+```
+
+Con estas bases crearemos una nueva variaable que nos audará a calcular el estátus de insolvencia de cada cliente, esto significa que conoceremos la cantidad de deuda que tienen.
+
+```{r}
+Datos_E <- mutate(Datos_E, deuda = `15. PAGOS PARA DISMINUIR SALDOS` - `16. TOTAL DE PAGOS MÍNIMOS.`)
+```
+
+Ya con esta variable creada, haremos otra que nos ayudará a darle un estátus a cada cliente de si esta endeudado o no, esto se definirá con 0 siendo insolvente (tiene mas deuda de lo que puede contraer) y 1 siendo solvente (tiene menor deuda a su capacidad de límite).
+
+```{r}
+Datos_E <- Datos_E %>% 
+  mutate(estatus_insolvencia = ifelse(deuda < 0, 0, 1))
+```
+
+Ya con esta variable creada podremos observar como se comporta con las variables explicativas categóricas y podremos observar la proporción de cada grupo y si es normal que entre en deuda o no.
+
+```{r}
+Datos_cat <- Datos_E[,c("19. NSE","estatus_insolvencia")]
+Datos_E$`19. NSE` <- as.factor(Datos_E$`19. NSE`)
+Datos_E$estatus_insolvencia <- as.factor(Datos_E$estatus_insolvencia)
+```
+
+```{r}
+porcentajes_NSE <- with(Datos_E, table(`19. NSE`, estatus_insolvencia))
+prop.table(porcentajes_NSE, 1)*100 
+```
+
+Con estas funciones podemos observar la solvencia e insolvencia de cada grupo, y como se ve en los resultados los grupos A/B son los que mejor solvenia tienen, pero los niveles socioeconómicos C y C+ sobrepasan el 50% lo cuál es un buen indicador de este grupo.
+
+```{r}
+Datos_N <- Datos_E[,c("21. Estatus Marital","estatus_insolvencia")]
+Datos_N$`21. Estatus Marital` <- as.factor(Datos_N$`21. Estatus Marital`)
+Datos_N$estatus_insolvencia <- as.factor(Datos_N$estatus_insolvencia)
+```
+
+```{r, echo = FALSE}
+porcentajes_marital <- with(Datos_N, table(`21. Estatus Marital`, estatus_insolvencia))
+prop.table(porcentajes_marital, 1)*100
+```
+
+En esta instancia calculamos el porcentaje de personas que son solventes o insolventes relacionado con el estátus marital, y en este caso ambos estados de casado y soltero estan por encima del 50%, pero el grupo de solteros tiene mejores resultados en la solvencia, por esto se puede inferir que lso solteros tienen menos gastos y por lo tanto mejor solvencia.
+
+Ahora veremos estos resultados de manera gráfica.
+
+```{r}
+library(funModeling)
+cross_plot(Datos_E,input="20. EDAD", target="estatus_insolvencia", plot_type = "percentual")
+```
+
+Como podemos osbervar con los resultados, el porcentaje de personas con insolvencia aumenta mediante la edad aumenta, lo cuál nos indica que la cantidad de deudas que se consiguen a lo largo dela vida aumentan o que la cantidad de flujo de efectivo disminuye a lo largo de la vida, y por eso entran más en deuda.
+
+```{r}
+cross_plot(Datos_E,input="2. SALDO MENUSAL.", target="estatus_insolvencia", plot_type = "percentual")
+```
+
+Aquí podemos observar que entre mayor saldo mensual, mayor es la cantidad de personas con insolvencia en la gran mayoría de rangos, esto apoya la inferencia de que la cantidad y tamaño de deudas aumenta entre más sueldo se tiene que normalmente aumenta también con la edad.
+
+```{r}
+cross_plot(Datos_E,input="7. DISPOSICIÓN DE EFECTIVO.", target="estatus_insolvencia", plot_type = "percentual")
+```
+
+En este caso los resultados no tienen un patron o tendencia concreta como en los ejemplos pasados, simplemente se puede decir que la disposición de efectivo en los diferentes rangos mantiene niveles abajo del 50% de insolvencia en los grupos.
+
+```{r}
+cross_plot(Datos_E,input="3. SALDO ANUAL.", target="estatus_insolvencia", plot_type = "percentual")
+```
+
+En esta última gráfica podemos observar que entre más aumenta el saldo anual, aumenta más el porcentaje de insolvencia de cada grupo. Son con estás gráficas que podemos observar como los comportamientos y las características si afectan a la solvencia de las personas.
+
+### Modelo de Regresión Logística
+
+Para mejorar la precisión de los resultados se crearan 2 modelos, uno en el que se tomarán todas las observaciones y otro en donde solamente se apliquen las de interés.
+
+Modelo de variables de selección
+
+```{r}
+RLog.Vacio<-glm(formula=estatus_insolvencia~1,Datos_E, family = binomial(link = "logit"))
+RLog.Completo<-glm(formula=estatus_insolvencia ~ `19. NSE`+`21. Estatus Marital`+ `15. PAGOS PARA DISMINUIR SALDOS`+ `16. TOTAL DE PAGOS MÍNIMOS.`, Datos_E, family = binomial (link = "logit"))
+```
+
+Modelo de todas las variables
+
+```{r}
+RLog.Vaciorr<-glm(formula=estatus_insolvencia~1,Datos_E, family = binomial(link = "logit"))
+RLog.Completorr<-glm(formula=estatus_insolvencia ~ `19. NSE`+`21. Estatus Marital`+ `15. PAGOS PARA DISMINUIR SALDOS`+ `16. TOTAL DE PAGOS MÍNIMOS.`+`2. SALDO MENUSAL.`+`3. SALDO ANUAL.`+`4. COMPRAS AL AÑO.`+`5. COMPRAS UNICAS.`+`6. COMPRAS A PLAZOS.`+`7. DISPOSICIÓN DE EFECTIVO.`+`8.PORCENTAJE DE MESES CON AL ME`+`9. FRECUENCIA DE COMPRAS UNICAS`+`10. FRECUENCIA DE DISPOSICIÓN D`+`12. PROMEDIO DE DISPOSICIÓN DE`+`13. COMPRAS POR TRANSACCIONES.`+`14.LÍMITE DE CRÉDITO`+`15. PAGOS PARA DISMINUIR SALDOS`+ `16. TOTAL DE PAGOS MÍNIMOS.`+`17. PORCENTAJE DE MESES CON PAG`+`18. MESES DE SER CLIENTE.`+`20. EDAD`, Datos_E, family = binomial (link = "logit"))
+```
+
+Ahora haremos uso del método backward, el cúal nos ayudará a identificar a las variables de significancia para la regresión logística para obtener los mejores resultados.
+
+```{r include = FALSE}
+RLog.Backward<- 
+step(RLog.Completorr,
+scope=list(lower=RLog.Vaciorr,
+upper=RLog.Completorr),
+direction ="backward")
+```
+
+Como podemos observar en los resultados las mejores variables para utilizar (o las que mayor significancia tienen para los modelos son:
+
+-   Pagos para Disminuir Saldos
+
+-   Total de Pagos Mínimos.
+
+También se va a agregar la variable de Saldo Mensual para poder tener también el estado de solvencia, ya que tiene un AIC bastante bajo, lo cuál nos ayuda a mejorar la precisión de los resultados.
+
+```{r}
+rlog<- glm(formula = estatus_insolvencia ~ `2. SALDO MENUSAL.`+`15. PAGOS PARA DISMINUIR SALDOS`+ `16. TOTAL DE PAGOS MÍNIMOS.`,Datos_E, 
+          family = binomial(link = "logit"))
+summary(rlog)
+```
+
+Con los resultados podemos decir que los datos no tienen mucha dispersión y que las variables utilizadas en estos modelos nos ayuda a identificar mejor la insolvencia de las personas. Con el AIC sabemos que la calidad del modelo es buena y por ende podemos decir que el modelo es confiable y se pueden conseguir buenos resultados para crear buenas estrategias.
+
+**¿El modelo es útil para la identificación de clientes con endeudamiento y sin endeudamiento?**
+
+Con este modelo si podemos tener la identificación de clientes solventes e insolventes ya que se creo la nueva variable que nos ayuda a identificar a las observaciones que tienen deuda o no, y con eso facilita la identificación.
+
+**¿El modelo funcionará satisfactoriamente para nuevos datos?**
+
+Este modelo seguirá funcionando siempre y cuando los registros que se agreguen a la base de datos estén correctos y sigan la sintáxis de sus variables respectivas. También es importante mantener la constancia de registro para no integrar una cantidad exagerada de resultados en una instancia.
+
+**¿Qué acciones recomendarías para que los clientes realicen un buen uso de la tarjeta de crédito y para que el área de gestión del banco realice un monitoreo del buen uso?**
+
+La mejor estrategia para crear una constancia en el uso de tarjetas son los modelos de recompensas, ya que incentiva a los clientes a hacer más uso de sus tarjetas para poder conseguir esos premios e inclusive subir de nivel, lo cuál se podría volver atractivo con diferentes tasas de interés o mejores beneficios entre más peldaños escalen, y para el banco podría ayudar mucho a tener una frecuencia constante de registro y un equipo de análisis que se especifique en monitorear el buen uso de las tarjetas y observar a las personas que empiecen a usarla menos para mandar recompensas que incentiven su uso.
+
+## Conclusiones finales y recomendaciones 
+
+Como pudimos observar a lo largo del documento, los conglomerados que se hicieron tenían mucha correlación entre las variables y esto nos ayudó a comprender como los comportamientos y características de cada grupo afectan a la solvencia de cada individuo y de sus grupos respectivos. En base a las conclusiones que obtuvimos se pudieron desarrollar ideas para cada grupo y las características de los resultados, y esto es lo que principalmente tuvo efecto en como se desarrolló cada estrategia y así es como debería de hacer para poder implementar de manera correcta la Inteligencia de Negocios que se debería de aplicar en todos los negocios. los hallazgos más relevantes son que entre más crece la edad mayor es la insolvencia de las personas, también como las personas solteras tienen finanzas más estables y que los grupos socio-económicos tienen diferentes resutlados con su insolvencia, con el grupo A/B siendo el que mejor porcentaje de solvencia tiene.
+
+Las recomendaciones que le puedo hacer al negocio tienen que ver con la manera en la que analizan los programas y modelos que implementan para aumentar el atractivo que los clientes tienen con sus tarjetas de crédito y esto se desenvuelve en empezar a crear las estrategias definidas para cada grupo en vez de ofrecerlo para el público en general, lo cuál si implementado de manera correcta, aumentaría la cantidad de personas que son clientes y la cantidad y tamañ de compras que hace con las tarjetas de crédito. También se puede implementar un programa del banco en el que se busqué implementar lectores baratos y fáciles de usar para expandir la cantidad de negocios que aceptan tarjeta, y esto se peude respaldar con el conocimiento de que alrededor del 70% de los negocios en México no aceptan tarjeta, lo cual es un factor externo que afecta a la percepción de las personas y a su disposición de efectivo.
+
+Recomendaciones puntuales:
+
+-   Programa de Lealtad
+
+-   Modelos de Recompensas
+
+-   Niveles con diferentes beneficios
+
+-   Temporadas con extensión de crédito para aumentar ventas
+
+-   Mejora del conocimiento de los clientes de los programas y beneficios que conlleva tener su dinero en el banco y las recompensas que el uso de tarjeta de crédito les puede otorgar con seminarios en línea o periódicos en línea con las nuevas actualizaciones y marcos actuales del banco.
+
+Con esta evidencia se logra comprender mejor como las estrategias de los bancos deberían de ser analizadas, ya que son varios factores los que afectan en la manera en la que las personas hacen uso de las terjetas de crédito y la confianza que le tienen a los bancos con su dinero.
